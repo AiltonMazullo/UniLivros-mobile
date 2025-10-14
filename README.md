@@ -1,50 +1,105 @@
-# Welcome to your Expo app 👋
+# UniLivros
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Sistema para incentivar a leitura e facilitar a troca/compartilhamento de livros entre estudantes, com uma solução Web e uma extensão Mobile.
 
-## Get started
+## Introdução
 
-1. Install dependencies
+O aumento dos preços dos livros e a queda no hábito de leitura no Brasil revelam um cenário preocupante: perda de milhões de leitores, superação do número de não‑leitores em relação aos leitores e a consequente redução de espaços e oportunidades que associam leitura à socialização. Esse cenário agrava desigualdades sociais e prejudica o desenvolvimento intelectual e cultural, principalmente entre jovens e pessoas de baixa renda.
 
-   ```bash
-   npm install
-   ```
+## Motivação
 
-2. Start the app
+A solução UniLivros foi pensada para incentivar a leitura e promover o compartilhamento de livros entre discentes do Centro Universitário Tiradentes (UNIT). Por meio de uma estante virtual, os usuários poderão disponibilizar e buscar livros para troca, além de interagir para combinar local e horário para o encontro. A extensão Mobile auxilia na gestão de propostas e encontros, incluindo confirmação de presença via QR Code no local da troca.
 
-   ```bash
-   npx expo start
-   ```
+## Solução
 
-In the output, you'll find options to open the app in a
+- Web
+  - Cadastro/Login
+  - Cadastrar livros na estante virtual
+  - Visualizar estantes de outros usuários
+  - Consultar livros disponíveis para troca
+  - Fazer e gerenciar propostas de troca
+  - Agendar e gerenciar encontros
+  - Gerir o próprio perfil
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Mobile
+  - Acompanhar propostas recebidas/pendentes
+  - Ver detalhes dos encontros e confirmar presença via QR Code
+  - Experiência otimizada para o dia da troca
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Principais Requisitos
 
-## Get a fresh project
+- Funcionais
+  - Adicionar livros à estante virtual
+  - Visualizar a estante de outros usuários
+  - Visualizar livros disponíveis para troca
+  - Fazer propostas de troca
+  - Gerenciar propostas recebidas
 
-When you're ready, run:
+- Não Funcionais
+  - Disponibilizar um serviço de busca
+  - Garantir confidencialidade, integridade e disponibilidade dos dados pessoais
+  - Funcionamento em diferentes dispositivos
 
-```bash
-npm run reset-project
+## Tecnologias
+
+- Front‑End Web: React
+- Mobile: React Native (Expo, expo‑router)
+- Back‑End: Java
+- Banco de Dados: SQL Server, PostgreSQL, MongoDB
+- Integrações: Axios
+
+## Estrutura do projeto (Mobile)
+
+```
+unilivros-mobile/
+├── app.json
+├── package.json
+├── tsconfig.json
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── hooks/
+│   ├── screens/
+│   └── services/
+└── assets/
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Como executar (Mobile)
 
-## Learn more
+Pré‑requisitos:
+- Node.js 18+
+- npm ou yarn
+- Expo CLI (opcional, você pode usar npx)
 
-To learn more about developing your project with Expo, look at the following resources:
+Instalação:
+- `npm install`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Rodar em desenvolvimento:
+- `npm run start` — abre o servidor Expo
+- `npm run android` — abre o app no emulador/dispositivo Android
+- `npm run ios` — abre o app no simulador iOS (macOS)
+- `npm run web` — inicia a versão web com Expo
 
-## Join the community
+Observações:
+- Este projeto usa TypeScript com `module: ESNext` e `moduleResolution: bundler`, recomendado para apps com bundler (Expo). Caso seu editor reclame de `module: preserve`, mantenha `ESNext` no `tsconfig.json`.
+- Em Windows, o Git pode trocar LF/CRLF automaticamente; ajuste suas configs caso necessário.
 
-Join our community of developers creating universal apps.
+## Contribuição
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Faça um fork do repositório
+2. Crie um branch para sua feature/ajuste: `git checkout -b feat/minha-feature`
+3. Commit: `git commit -m "feat: descrição da mudança"`
+4. Push: `git push origin feat/minha-feature`
+5. Abra um Pull Request
+
+## Equipe
+
+- Ailton Rodrigues Mazullo Neto — Desenvolvedor Mobile
+- Beatriz Conde Carvalho — Designer UI/UX / Marketing
+- Bruno Gabriel de Lima Souza — Desenvolvedor Back‑end
+- Gabriela Monte Batista de Arruda — Product Owner (PO) / Analista de Requisitos
+- Gabriella Stheffany Pontes da Cunha — QA / Testes e Documentação Técnica
+- Jônatas Lopes Ferreira da Silva — Arquiteto de Banco de Dados
+- José Olegário Acioly Nery — Líder de Projeto / Scrum Master
+- Matheus Guilherme Morais da Silva — Desenvolvedor Mobile
+- Poliane Maria do Monte Silva — Desenvolvedor Front‑end Web
