@@ -1,153 +1,70 @@
-import React, { useMemo, useState } from 'react';
-import { SafeAreaView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Input from '../components/Input';
-import PrimaryButton from '../components/PrimaryButton';
+import React, { useState } from "react";
+import { View, Text, ScrollView, Image, Pressable } from "react-native";
+import Constants from "expo-constants";
+import { router } from "expo-router";
 
-function isValidEmail(email: string) {
-  return /\S+@\S+\.\S+/.test(email);
-}
+const statusBarHeight = Constants.statusBarHeight;
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const emailError = useMemo(() => {
-    if (!email) return '';
-    return isValidEmail(email) ? '' : 'Informe um email válido';
-  }, [email]);
-
-  const passwordError = useMemo(() => {
-    if (!password) return '';
-    return password.length >= 6 ? '' : 'A senha deve ter pelo menos 6 caracteres';
-  }, [password]);
-
-  const isFormValid = useMemo(() => {
-    return email.length > 0 && password.length > 0 && !emailError && !passwordError;
-  }, [email, password, emailError, passwordError]);
-
-  function handleForgotPassword() {
-    Alert.alert('Recuperar senha', 'Funcionalidade em desenvolvimento.');
-  }
-
-  async function handleLogin() {
-    if (!isFormValid) return;
-    try {
-      setLoading(true);
-      // TODO: integrar com serviço de autenticação (src/services/auth.ts)
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      Alert.alert('Login', 'Autenticado com sucesso!');
-    } catch (e) {
-      Alert.alert('Erro', 'Não foi possível realizar o login.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        
-        <View style={styles.header}>
-          <Text style={styles.title}>UniLivros</Text>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.iconBox}>
-            <MaterialCommunityIcons name="book-open-page-variant" size={36} color="#5A211A" />
-          </View>
-
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIconName="email-outline"
-              error={emailError}
-              testID="login-email"
-            />
-
-            <Input
-              label="Senha"
-              placeholder="Senha"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              leftIconName="lock-outline"
-              rightIconName={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              onPressRightIcon={() => setShowPassword((v) => !v)}
-              error={passwordError}
-              testID="login-password"
-            />
-
-            <View style={styles.forgotBox}>
-              <Pressable onPress={handleForgotPassword} accessibilityRole="button">
-                <Text style={styles.forgotText}>Esqueceu a Senha?</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.submitBox}>
-              <PrimaryButton
-                title="Entrar"
-                onPress={handleLogin}
-                disabled={!isFormValid}
-                loading={loading}
-                testID="login-submit"
-              />
-            </View>
-          </View>
+    <ScrollView
+      className="w-full h-full bg-cream pb-16"
+      showsVerticalScrollIndicator={false}
+    >
+      <View
+        className="w-full items-center"
+        style={{ marginTop: statusBarHeight }}
+      >
+        <View
+          className="bg-[#FFF2F9] rounded-2xl w-full px-4 py-3 flex-row items-center justify-center"
+          style={{
+            shadowColor: "#000",
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 6,
+          }}
+        >
+          <Text
+            className="text-4xl text-center text-brand"
+            style={{ fontFamily: "JosefinSans_400Regular" }}
+          >
+            UniLivros
+          </Text>
+          <Image
+            source={require("../../assets/logo.png")}
+            className="w-10 h-10 ml-2 mb-1"
+          />
         </View>
       </View>
-    </SafeAreaView>
+
+      <View className="w-full items-center flex-column justify-center mt-20 gap-16">
+        <Text
+          className="text-4xl text-center text-brand"
+          style={{ fontFamily: "JosefinSans_700Bold" }}
+        >
+          Compartilhar livros,
+          {"\n"} é{"\n"}compartilhar
+          {"\n"}mundos.
+        </Text>
+        <Image
+          source={require("../../assets/Vector.png")}
+          className="w-100 h-100 ml-2 mb-1"
+        />
+        <Text className="text-3xl text-center text-brand" style={{ fontFamily: "JosefinSans_400Regular" }}>
+          UniLivros é um espaço pensado para quem acredita que ler é mais do que
+          virar páginas. Aqui você pode montar sua estante virtual, trocar
+          livros, conhecer novos leitores e transformar cada encontro em uma
+          nova história.
+        </Text>
+
+        <Pressable
+          className="mt-6 mb-12 w-2/4 bg-[#F29F05] rounded-full px-8 py-3 items-center justify-center"
+          onPress={() => router.push("/login")}
+        >
+          <Text className="text-white text-lg font-bold tracking-widest">LOGIN</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  header: {
-    marginTop: 64,
-    marginBottom: 24,
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#5A211A',
-  },
-  card: {
-    marginHorizontal: 8,
-    borderRadius: 20,
-    backgroundColor: '#FBECD5',
-    padding: 24,
-  },
-  iconBox: {
-    alignItems: 'center',
-  },
-  form: {
-    marginTop: 24,
-  },
-  forgotBox: {
-    alignItems: 'flex-end',
-  },
-  forgotText: {
-    fontSize: 14,
-    color: '#F27405',
-    textDecorationLine: 'underline',
-  },
-  submitBox: {
-    marginTop: 24,
-  },
-});
