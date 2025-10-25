@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Image, Pressable } from "react-native";
+import { View, Text, ScrollView, Image } from "react-native";
 import Constants from "expo-constants";
-import { router } from "expo-router";
+import { Link } from "expo-router";
 
 const statusBarHeight = Constants.statusBarHeight;
 
-export default function Login() {
+export default function StartScreen() {
+
   return (
     <ScrollView
       className="w-full h-full bg-cream pb-16"
@@ -51,19 +52,25 @@ export default function Login() {
           source={require("../../assets/Vector.png")}
           className="w-100 h-100 ml-2 mb-1"
         />
-        <Text className="text-3xl text-center text-brand" style={{ fontFamily: "JosefinSans_400Regular" }}>
+        <Text
+          className="text-3xl text-center text-brand p-2 "
+          style={{ fontFamily: "JosefinSans_400Regular" }}
+        >
           UniLivros é um espaço pensado para quem acredita que ler é mais do que
           virar páginas. Aqui você pode montar sua estante virtual, trocar
           livros, conhecer novos leitores e transformar cada encontro em uma
           nova história.
         </Text>
-
-        <Pressable
-          className="mt-6 mb-12 w-2/4 bg-[#F29F05] rounded-full px-8 py-3 items-center justify-center"
-          onPress={() => router.push("/login")}
-        >
-          <Text className="text-white text-lg font-bold tracking-widest">LOGIN</Text>
-        </Pressable>
+        <View>
+          <Link
+            className="mt-6 mb-12 w-2/4 bg-[#F29F05] rounded-full px-8 py-3 items-center justify-center"
+            href={"/login"}
+          >
+            <Text className="text-white text-lg font-bold tracking-widest">
+              LOGIN
+            </Text>
+          </Link>
+        </View>
       </View>
     </ScrollView>
   );

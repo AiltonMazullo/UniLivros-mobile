@@ -1,14 +1,14 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TextInput,
-  Pressable,
-} from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Image, Pressable } from "react-native";
+import { Input } from "../../components/input";
+import { Link, useRouter } from "expo-router";
 
-export default function LoginScreen() {
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const router = useRouter();
+
   return (
     <ScrollView
       className="w-full h-full bg-white"
@@ -26,10 +26,8 @@ export default function LoginScreen() {
         >
           UniLivros
         </Text>
-
-        {/* Card de Login */}
         <View
-          className="bg-[#FBECD5] w-11/12 rounded-2xl px-5 py-6 items-center"
+          className="bg-[#FBECD5] w-10/12 h-10/12 rounded-3xl px-5 py-6 items-center"
           style={{
             shadowColor: "#000",
             shadowOpacity: 0.08,
@@ -39,34 +37,37 @@ export default function LoginScreen() {
           }}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={require("../../../assets/logo.png")}
             className="w-10 h-10 mb-4"
           />
 
-          <TextInput
-            className="bg-white w-10/12 rounded-full px-4 py-2 mb-3"
+          <Input
             placeholder="Email"
-            placeholderTextColor="#7A7A7A"
+            value={email}
+            onChangeText={setEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
+            className="w-10/12 mt-3"
           />
-          <TextInput
-            className="bg-white w-10/12 rounded-full px-4 py-2"
+
+          <Input
             placeholder="Senha"
-            placeholderTextColor="#7A7A7A"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
+            className="w-10/12 mt-3"
           />
 
-          {/* Esqueceu a senha */}
           <View className="w-10/12 mt-2">
-            <Text className="text-right text-brand text-xs">
+            <Link href="/reset-password" className="text-right text-brand text-xs ">
               Esqueceu a senha?
-            </Text>
+            </Link>
           </View>
-
-          {/* Botão Entrar */}
           <Pressable
-            className="mt-4 bg-[#F29F05] rounded-full px-6 py-3"
-            onPress={() => {}}
+            className="mt-4 bg-[#F29F05] rounded-full px-6 py-3 active:bg-[#D4890A]"
+            onPress={() => {
+              router.push("/home");
+            }}
           >
             <Text className="text-white text-center font-bold">Entrar</Text>
           </Pressable>
