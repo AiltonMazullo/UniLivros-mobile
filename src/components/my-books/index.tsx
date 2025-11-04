@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, ScrollView, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 
 export type TipoLivro = "troca" | "venda" | "emprestimo";
 export type EstadoLivro = "novo" | "seminovo" | "usado";
@@ -53,13 +54,15 @@ export const livrosMock: LivroMock[] = [
 ];
 
 export function MyBooks() {
+  const router = useRouter();
+
   return (
-    <ScrollView>
-      <View className="flex flex-col justify-center align-center gap-6">
+    <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
+      <View className="flex-1 items-center justify-center gap-6 mt-8">
         {livrosMock.map((livro) => (
           <View
             key={livro.id}
-            className="w-[309px] h-[138px] bg-[#5A211A] rounded-xl p-4 flex-row items-center"
+            className="w-[290px] h-[138px] bg-[#5A211A] rounded-xl p-4 flex-row"
           >
             <View className="w-[72px] h-[90px] rounded-lg overflow-hidden mr-4 bg-[#3B1E18]">
               <Image
@@ -72,20 +75,38 @@ export function MyBooks() {
                 resizeMode="cover"
               />
             </View>
-            <View className="flex-1 justify-between h-full">
-              <Text className="text-base font-bold text-[#FFFFFF]">
-                {livro.titulo}
-              </Text>
-              <Text className="text-xs text-[#FFFFFF]">Tipo: {livro.tipo}</Text>
-              <Text className="text-xs text-[#FFFFFF]">
-                Estado: {livro.estado}
-              </Text>
+            <View className="flex-1 h-full justify-between text-center">
+              <View>
+                <Text
+                  className="text-base font-bold text-[#FFFFFF]"
+                  numberOfLines={1}
+                >
+                  {livro.titulo}
+                </Text>
+                <Text className="text-xs text-[#FFFFFF] mt-1">
+                  Tipo: {livro.tipo}
+                  {"\n"}Estado: {livro.estado}
+                </Text>
+              </View>
+
+              <Pressable
+                className="bg-[#F29F05] rounded-full px-8 py-2 self-center"
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/description-book",
+                    params: {
+                      id: livro.id,
+                      titulo: livro.titulo,
+                      imagem: livro.imagem ?? "",
+                    },
+                  })
+                }
+              >
+                <Text className="text-[#FFFFFF] text-sm font-semibold">
+                  Descrição
+                </Text>
+              </Pressable>
             </View>
-            <Pressable className="bg-[#F27405] rounded-lg px-4 py-2 self-start mt-2">
-              <Text className="text-[#FFFFFF] text-xs font-semibold">
-                Descrição
-              </Text>
-            </Pressable>
           </View>
         ))}
       </View>

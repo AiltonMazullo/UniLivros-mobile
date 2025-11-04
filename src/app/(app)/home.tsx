@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Image, Pressable, ScrollView } from "react-native";
 import { Header } from "../../components/header";
 import { MyBooks } from "../../components/my-books";
+import { BooksUnilivrers } from "@/src/components/books-unilivrers";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"personal" | "unilivros">(
@@ -42,6 +43,7 @@ export default function Home() {
         <View className="h-[4] w-full bg-white" />
       </View>
       {activeTab === "personal" ? <MyBooks /> : null}
+      {activeTab === "unilivros" ? <BooksUnilivrers /> : null}
     </ScrollView>
   );
 }
