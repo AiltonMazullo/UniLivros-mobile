@@ -1,6 +1,18 @@
-import { View, Text, Image, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { BooksService } from "../../services/books";
+import { useInputContext } from "../../context/InputContext";
+import { Header } from "@/src/components/header";
 
 export default function DescriptionBook() {
   const router = useRouter();
@@ -11,30 +23,38 @@ export default function DescriptionBook() {
     imagem?: string;
   }>();
 
+  const { getDescricao, setDescricao: setContextDescricao } = useInputContext();
+  const [descricao, setDescricao] = useState<string>("");
+  const maxChars = 1000;
+
+  useEffect(() => {
+    const initial = getDescricao(String(id)) ?? (texto as string) ?? "";
+    setDescricao(initial);
+  }, [id, texto]);
+
+  async function handleSave() {
+    if (!id) {
+      Alert.alert("Erro", "ID do livro não informado.");
+      return;
+    }
+    try {
+      await BooksService.update(String(id), { descricao });
+      setContextDescricao(String(id), descricao);
+      Alert.alert("Sucesso", "Resumo atualizado com sucesso!");
+      router.back();
+    } catch (error: any) {
+      Alert.alert(
+        "Falha ao salvar",
+        error?.response?.data?.message || "Tente novamente mais tarde."
+      );
+    }
+  }
+
   return (
     <ScrollView className="w-full h-full bg-cream">
-      <View className="flex flex-row justify-between items-center p-8 ">
-        <View className="flex flex-row justify-start items-center gap-2">
-          <Text
-            className="text-3xl text-brand mb-2 text-center"
-            style={{ fontFamily: "JosefinSans_400Regular" }}
-          >
-            UniLivros
-          </Text>
-          <Image
-            source={require("../../../assets/logo.png")}
-            className="w-10 h-10 mb-4"
-          />
-        </View>
-        <View className="flex flex-row justify-end items-center mb-2">
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="person" size={26} color="#4B1D0E" />
-          </Pressable>
-        </View>
-      </View>
+      <Header />
       <View className="flex items-center justify-center" key={id}>
         <View className="relative w-[326px] h-auto bg-[#5A211A] p-6 rounded-3xl">
-          {/* Botão de fechar no canto superior direito */}
           <Pressable
             onPress={() => router.push("/(app)/home")}
             className="absolute right-4 top-4 z-10"
@@ -61,17 +81,33 @@ export default function DescriptionBook() {
               {titulo ?? "Título não informado"}
             </Text>
 
-            <Text
-              className="text-white text-sm mt-3 leading-5"
-              style={{ fontFamily: "JosefinSans_400Regular" }}
+            <View className="mt-3 w-full">
+              <TextInput
+                multiline
+                value={descricao}
+                onChangeText={(t) => setDescricao(t)}
+                placeholder="Digite aqui o resumo do livro..."
+                placeholderTextColor="#EBD4C0"
+                className="text-white text-sm leading-5 p-3 rounded-xl border border-[#2E86C1]"
+                style={{ fontFamily: "JosefinSans_400Regular", minHeight: 160 }}
+              />
+              <View className="mt-1 w-full">
+                <Text
+                  className="text-[#EBD4C0] text-xs text-right"
+                  style={{ fontFamily: "JosefinSans_400Regular" }}
+                >
+                  {descricao.length}/{maxChars}
+                </Text>
+              </View>
+            </View>
+
+            {/* Botão salvar */}
+            <Pressable
+              className="bg-[#7AC70C] rounded-full px-6 py-3 mt-4 w-9/12"
+              onPress={handleSave}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
-              ut dolor vel augue ultricies bibendum. Curabitur sed dui at mauris
-              facilisis luctus. Sed vitae lorem ac nibh fermentum convallis.
-              Praesent nec sapien a elit pulvinar mollis. Donec venenatis, enim
-              non pretium facilisis, augue ligula pretium velit, sed convallis
-              mi magna eget justo.
-            </Text>
+              <Text className="text-white text-center font-bold">Salvar</Text>
+            </Pressable>
           </View>
         </View>
       </View>

@@ -40,16 +40,14 @@ export default function Login() {
             source={require("../../../assets/logo.png")}
             className="w-10 h-10 mb-4"
           />
-
           <Input
-            placeholder="Email"
+            placeholder="@souunit.com.br"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             className="w-10/12 mt-3"
           />
-
           <Input
             placeholder="Senha"
             value={password}
@@ -57,12 +55,6 @@ export default function Login() {
             secureTextEntry
             className="w-10/12 mt-3"
           />
-
-          <View className="w-10/12 mt-2">
-            <Link href="/reset-password" className="text-right text-brand text-xs ">
-              Esqueceu a senha?
-            </Link>
-          </View>
           <Pressable
             className="mt-4 bg-[#F29F05] rounded-full px-6 py-3 active:bg-[#D4890A]"
             onPress={() => {

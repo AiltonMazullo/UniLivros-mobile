@@ -62,7 +62,7 @@ export function MyBooks() {
         {livrosMock.map((livro) => (
           <View
             key={livro.id}
-            className="w-[290px] h-[138px] bg-[#5A211A] rounded-xl p-4 flex-row"
+            className="w-[290px] h-[128px] bg-[#5A211A] rounded-xl p-4 flex-row"
           >
             <View className="w-[72px] h-[90px] rounded-lg overflow-hidden mr-4 bg-[#3B1E18]">
               <Image
@@ -90,7 +90,7 @@ export function MyBooks() {
               </View>
 
               <Pressable
-                className="bg-[#F29F05] rounded-full px-8 py-2 self-center"
+                className="bg-[#F29F05] rounded-full px-5 py-1 self-center mb-3"
                 onPress={() =>
                   router.push({
                     pathname: "/(app)/description-book",

@@ -54,17 +54,15 @@ export const livrosMock2: LivroMock[] = [
 ];
 
 export function BooksUnilivrers() {
+  const router = useRouter();
 
-    const router = useRouter();
-
-    
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
       <View className="flex-1 items-center justify-center gap-6 mt-8">
         {livrosMock2.map((livro) => (
           <View
             key={livro.id}
-            className="w-[290px] h-[138px] bg-[#5A211A] rounded-xl p-4 flex-row"
+            className="w-[290px] h-[128px] bg-[#5A211A] rounded-xl p-4 flex-row"
           >
             <View className="w-[72px] h-[90px] rounded-lg overflow-hidden mr-4 bg-[#3B1E18]">
               <Image
@@ -92,7 +90,19 @@ export function BooksUnilivrers() {
               </View>
 
               <View className="flex-row items-center justify-evenly gap-0 w-full h-1/2">
-                <Pressable className="bg-[#F29F05] rounded-full px-4 self-center" onPress={() => router.push(`/(app)/description-book?id=${livro.id}`)}>
+                <Pressable
+                  className="bg-[#F29F05] rounded-full px-4 self-center"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/description-book",
+                      params: {
+                        id: livro.id,
+                        titulo: livro.titulo,
+                        imagem: livro.imagem ?? "",
+                      },
+                    })
+                  }
+                >
                   <Text
                     className="text-[#FFFFFF] text-base text-center font-semibold"
                     style={{ fontSize: 10 }}
@@ -101,7 +111,20 @@ export function BooksUnilivrers() {
                   </Text>
                 </Pressable>
 
-                <Pressable className="bg-[#FFF2F9] rounded-full px-4 self-center">
+                <Pressable
+                  className="bg-[#FFF2F9] rounded-full px-4 self-center"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/edit-book",
+                      params: {
+                        id: livro.id,
+                        titulo: livro.titulo,
+                        imagem: livro.imagem ?? "",
+                        // texto: livro.texto ?? "",
+                      },
+                    })
+                  }
+                >
                   <Text
                     className="text-[#5A211A] text-base text-center font-semibold"
                     style={{ fontSize: 10 }}
