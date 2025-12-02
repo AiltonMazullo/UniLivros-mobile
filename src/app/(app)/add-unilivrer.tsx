@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import {
   View,
@@ -8,20 +8,34 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import {
-  UsersService,
-  UserSummary,
-} from "../../features/users/services/UsersService";
+import { UsersService, UserSummary } from "../../services/UsersService";
 import { useRouter } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdicionarUnilivrer() {
-  const [query, setQuery] = useState("");
+  // Por padrão, mostramos apenas usuários da instituição
+  const [query, setQuery] = useState("@souunit.com.br");
   const [results, setResults] = useState<UserSummary[]>([]);
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     UsersService.list(query).then(setResults);
   }, [query]);
+
+  // Filtra por domínio da instituição, independente da busca
+  const domain = "@souunit.com.br";
+  const filtered = useMemo(() => {
+    const byDomain = results.filter((u) =>
+      typeof (u as any).email === "string"
+        ? String((u as any).email)
+            .toLowerCase()
+            .endsWith(domain)
+        : true
+    );
+    // Oculta o próprio usuário na listagem
+    return byDomain.filter((u) => (user?.id ? u.id !== user.id : true));
+  }, [results, user, domain]);
 
   return (
     <ScrollView className="flex-1 bg-[#FFF2F2]" contentContainerClassName="p-4">
@@ -48,21 +62,20 @@ export default function AdicionarUnilivrer() {
       </View>
 
       <View className="gap-3">
-        {results.map((u) => (
+        {filtered.map((u) => (
           <View
             key={u.id}
             className="flex flex-row items-center justify-between bg-white rounded-xl px-3 py-3"
           >
             <View className="flex flex-row items-center gap-3">
               <View className="w-10 h-10 rounded-full overflow-hidden border border-orange-400 bg-white items-center justify-center">
-                <Image
-                  source={
-                    u.avatarUrl
-                      ? { uri: u.avatarUrl }
-                      : require("../../../assets/logo.png")
-                  }
-                  className="w-10 h-10"
-                />
+                {u.avatarUrl ? (
+                  <Image source={{ uri: u.avatarUrl }} className="w-10 h-10" />
+                ) : (
+                  <View className="w-10 h-10 items-center justify-center bg-white">
+                    <Feather name="user" size={20} color="#4B1D0E" />
+                  </View>
+                )}
               </View>
               <View>
                 <Text
@@ -71,6 +84,11 @@ export default function AdicionarUnilivrer() {
                 >
                   {u.nome}
                 </Text>
+                {typeof (u as any).email === "string" && (
+                  <Text className="text-gray-500 text-xs">
+                    {String((u as any).email)}
+                  </Text>
+                )}
                 <Text className="text-gray-500 text-xs">
                   Livros trocados {u.livrosTrocados ?? 0} • Avaliações{" "}
                   {u.avaliacoes ?? 0}
@@ -78,6 +96,17 @@ export default function AdicionarUnilivrer() {
               </View>
             </View>
             <View className="flex flex-row gap-2">
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/chat/[id]",
+                    params: { id: String(u.id) },
+                  })
+                }
+                className="px-3 py-2 rounded-full bg-orange-300"
+              >
+                <Text className="text-[#4B1D0E]">Enviar mensagem</Text>
+              </Pressable>
               <Pressable
                 onPress={() =>
                   router.push({

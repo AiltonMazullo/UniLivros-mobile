@@ -1,65 +1,76 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, Image, ScrollView, Pressable } from "react-native";
+import { BooksService } from "../../services/books";
+import { Book } from "../../types/book";
+import { useAuth } from "../../context/AuthContext";
+import { GoogleBooksService } from "../../services/googleBooks";
+import { useFocusEffect } from "@react-navigation/native";
 
 export type TipoLivro = "troca" | "venda" | "emprestimo";
 export type EstadoLivro = "novo" | "seminovo" | "usado";
 
-export interface LivroMock {
-  id: string;
-  titulo: string;
-  tipo: TipoLivro;
-  estado: EstadoLivro;
-  imagem?: string;
-}
-
-export const livrosMock2: LivroMock[] = [
-  { id: "13", titulo: "Cem Anos de Solidão", tipo: "venda", estado: "novo" },
-  { id: "14", titulo: "O Nome da Rosa", tipo: "troca", estado: "seminovo" },
-  {
-    id: "15",
-    titulo: "Ensaio sobre a Cegueira",
-    tipo: "emprestimo",
-    estado: "usado",
-  },
-  { id: "16", titulo: "A Metamorfose", tipo: "venda", estado: "seminovo" },
-  { id: "17", titulo: "Crime e Castigo", tipo: "troca", estado: "usado" },
-  {
-    id: "18",
-    titulo: "O Processo",
-    tipo: "emprestimo",
-    estado: "novo",
-  },
-  {
-    id: "19",
-    titulo: "Madame Bovary",
-    tipo: "venda",
-    estado: "seminovo",
-  },
-  { id: "20", titulo: "Anna Karenina", tipo: "troca", estado: "novo" },
-  { id: "21", titulo: "Os Miseráveis", tipo: "emprestimo", estado: "usado" },
-  {
-    id: "22",
-    titulo: "O Conde de Monte Cristo",
-    tipo: "venda",
-    estado: "seminovo",
-  },
-  { id: "23", titulo: "Ulisses", tipo: "troca", estado: "usado" },
-  {
-    id: "24",
-    titulo: "Em Busca do Tempo Perdido",
-    tipo: "emprestimo",
-    estado: "novo",
-  },
-];
-
 export function BooksUnilivrers() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [books, setBooks] = useState<Book[]>([]);
+
+  const fetchBooks = useCallback(() => {
+    BooksService.getAll()
+      .then((all) => {
+        const others = user
+          ? all.filter((b) => String(b.usuarioId) !== String(user.id))
+          : all;
+        setBooks(others);
+        (async () => {
+          const missing = others.filter((b) => !b.imagem && b.titulo);
+          if (missing.length === 0) return;
+          try {
+            const top = missing.slice(0, 3);
+            const updates = await Promise.all(
+              top.map(async (b) => {
+                const res = await GoogleBooksService.search(b.titulo);
+                const best = res[0];
+                return best?.imagem
+                  ? {
+                      id: b.id,
+                      imagem: best.imagem,
+                      genero: best.genero,
+                      descricao: best.descricao,
+                    }
+                  : null;
+              })
+            );
+            const byId: Record<string, Partial<Book>> = {};
+            updates.filter(Boolean).forEach((u) => {
+              if (u) byId[String(u.id!)] = u;
+            });
+            setBooks((prev) =>
+              prev.map((b) =>
+                byId[String(b.id)] ? { ...b, ...byId[String(b.id)] } : b
+              )
+            );
+          } catch {}
+        })();
+      })
+      .catch(() => setBooks([]));
+  }, [user]);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBooks();
+      return () => {};
+    }, [fetchBooks])
+  );
 
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
       <View className="flex-1 items-center justify-center gap-6 mt-8">
-        {livrosMock2.map((livro) => (
+        {books.map((livro) => (
           <View
             key={livro.id}
             className="w-[290px] h-[128px] bg-[#5A211A] rounded-xl p-4 flex-row"
@@ -89,14 +100,14 @@ export function BooksUnilivrers() {
                 </Text>
               </View>
 
-              <View className="flex-row items-center justify-evenly gap-0 w-full h-1/2">
+              <View className="flex-row items-center justify-start gap-6 w-full h-1/2">
                 <Pressable
                   className="bg-[#F29F05] rounded-full px-4 self-center"
                   onPress={() =>
                     router.push({
                       pathname: "/(app)/description-book",
                       params: {
-                        id: livro.id,
+                        id: String(livro.id),
                         titulo: livro.titulo,
                         imagem: livro.imagem ?? "",
                       },
@@ -117,7 +128,7 @@ export function BooksUnilivrers() {
                     router.push({
                       pathname: "/(app)/edit-book",
                       params: {
-                        id: livro.id,
+                        id: String(livro.id),
                         titulo: livro.titulo,
                         imagem: livro.imagem ?? "",
                         // texto: livro.texto ?? "",

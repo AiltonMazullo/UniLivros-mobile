@@ -1,65 +1,74 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, Image, ScrollView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-
-export type TipoLivro = "troca" | "venda" | "emprestimo";
-export type EstadoLivro = "novo" | "seminovo" | "usado";
-
-export interface LivroMock {
-  id: string;
-  titulo: string;
-  tipo: TipoLivro;
-  estado: EstadoLivro;
-  imagem?: string; // opcional, se quiser exibir capa
-}
-
-export const livrosMock: LivroMock[] = [
-  { id: "1", titulo: "Dom Casmurro", tipo: "troca", estado: "seminovo" },
-  { id: "2", titulo: "O Alquimista", tipo: "venda", estado: "novo" },
-  {
-    id: "3",
-    titulo: "Grande Sertão: Veredas",
-    tipo: "emprestimo",
-    estado: "usado",
-  },
-  { id: "4", titulo: "Capitães da Areia", tipo: "venda", estado: "usado" },
-  { id: "5", titulo: "1984", tipo: "troca", estado: "novo" },
-  {
-    id: "6",
-    titulo: "Memórias Póstumas de Brás Cubas",
-    tipo: "emprestimo",
-    estado: "seminovo",
-  },
-  {
-    id: "7",
-    titulo: "A Revolução dos Bichos",
-    tipo: "venda",
-    estado: "seminovo",
-  },
-  { id: "8", titulo: "Vidas Secas", tipo: "troca", estado: "usado" },
-  { id: "9", titulo: "O Pequeno Príncipe", tipo: "emprestimo", estado: "novo" },
-  {
-    id: "10",
-    titulo: "Harry Potter e a Pedra Filosofal",
-    tipo: "venda",
-    estado: "novo",
-  },
-  { id: "11", titulo: "A Moreninha", tipo: "troca", estado: "seminovo" },
-  {
-    id: "12",
-    titulo: "O Senhor dos Anéis: A Sociedade do Anel",
-    tipo: "emprestimo",
-    estado: "usado",
-  },
-];
+import { BooksService } from "../../services/books";
+import { Book } from "../../types/book";
+import { useAuth } from "../../context/AuthContext";
+import { GoogleBooksService } from "../../services/googleBooks";
+import { useFocusEffect } from "@react-navigation/native";
 
 export function MyBooks() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [books, setBooks] = useState<Book[]>([]);
+
+  const fetchBooks = useCallback(() => {
+    if (!user?.id) {
+      setBooks([]);
+      return;
+    }
+    BooksService.getByUsuarioId(String(user.id))
+      .then((mine) => {
+        setBooks(mine);
+        (async () => {
+          const missing = mine.filter((b) => !b.imagem && b.titulo);
+          if (missing.length === 0) return;
+          try {
+            const top = missing.slice(0, 3);
+            const updates = await Promise.all(
+              top.map(async (b) => {
+                const res = await GoogleBooksService.search(b.titulo);
+                const best = res[0];
+                return best?.imagem
+                  ? {
+                      id: b.id,
+                      imagem: best.imagem,
+                      genero: best.genero,
+                      descricao: best.descricao,
+                    }
+                  : null;
+              })
+            );
+            const byId: Record<string, Partial<Book>> = {};
+            updates.filter(Boolean).forEach((u) => {
+              if (u) byId[String(u.id!)] = u;
+            });
+            setBooks((prev) =>
+              prev.map((b) =>
+                byId[String(b.id)] ? { ...b, ...byId[String(b.id)] } : b
+              )
+            );
+          } catch {}
+        })();
+      })
+      .catch(() => setBooks([]));
+  }, [user]);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBooks();
+      return () => {};
+    }, [fetchBooks])
+  );
 
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
       <View className="flex-1 items-center justify-center gap-6 mt-8">
-        {livrosMock.map((livro) => (
+        {books.map((livro) => (
           <View
             key={livro.id}
             className="w-[290px] h-[128px] bg-[#5A211A] rounded-xl p-4 flex-row"
@@ -95,7 +104,7 @@ export function MyBooks() {
                   router.push({
                     pathname: "/(app)/description-book",
                     params: {
-                      id: livro.id,
+                      id: String(livro.id),
                       titulo: livro.titulo,
                       imagem: livro.imagem ?? "",
                     },

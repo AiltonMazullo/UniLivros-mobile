@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, Pressable, ScrollView, Alert } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Select } from "../../components/select";
 import { BooksService } from "../../services/books";
+import { GoogleBooksService } from "../../services/googleBooks";
 
 export default function EditBook() {
   const router = useRouter();
@@ -18,18 +19,55 @@ export default function EditBook() {
   const [tipoValue, setTipoValue] = useState<string>(tipo ?? "");
   const [estadoValue, setEstadoValue] = useState<string>(estado ?? "");
   const [saving, setSaving] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>(imagem ?? "");
+  const [fetchingGoogle, setFetchingGoogle] = useState(false);
+  const [titleValue, setTitleValue] = useState<string>(titulo ?? "");
+
+  // Carregar dados atuais do livro quando tipo/estado não vierem pelos params
+  useEffect(() => {
+    if (!id) return;
+    const needsFetch = !tipo || !estado || !imagem || !titulo;
+    if (!needsFetch) return;
+    (async () => {
+      try {
+        const book = await BooksService.getById(String(id));
+        if (!tipo) setTipoValue(book.tipo);
+        if (!estado) setEstadoValue(book.estado);
+        if (!imagem) setImageUrl(book.imagem ?? "");
+        if (!titulo) setTitleValue(book.titulo);
+      } catch (err) {
+        // silencioso: se falhar, usuário pode editar mesmo assim
+      }
+    })();
+  }, [id, tipo, estado, imagem, titulo]);
 
   async function handleSave() {
     if (!id) {
       Alert.alert("Erro", "ID do livro não informado.");
       return;
     }
+    if (!tipoValue) {
+      Alert.alert("Tipo obrigatório", "Selecione o tipo do livro.");
+      return;
+    }
+    if (!estadoValue) {
+      Alert.alert("Estado obrigatório", "Selecione o estado do livro.");
+      return;
+    }
     try {
       setSaving(true);
-      await BooksService.update(String(id), {
-        tipo: tipoValue as any,
-        estado: estadoValue as any,
-      });
+      // Para APIs que exigem PUT com objeto completo, buscamos o livro atual
+      const current = await BooksService.getById(String(id));
+      const payload = {
+        titulo: current.titulo,
+        genero: current.genero,
+        descricao: current.descricao,
+        usuarioId: current.usuarioId,
+        tipo: (tipoValue || current.tipo) as any,
+        estado: (estadoValue || current.estado) as any,
+        imagem: imageUrl || current.imagem || undefined,
+      };
+      await BooksService.update(String(id), payload);
       Alert.alert("Sucesso", "Livro atualizado com sucesso!");
       router.back();
     } catch (error: any) {
@@ -40,6 +78,40 @@ export default function EditBook() {
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleFetchFromGoogle() {
+    const t = (titleValue || titulo || "").toString();
+    if (!t || t.trim().length === 0) {
+      Alert.alert(
+        "Informe o título",
+        "Para buscar no Google, precisamos do título."
+      );
+      return;
+    }
+    try {
+      setFetchingGoogle(true);
+      const results = await GoogleBooksService.search(String(t));
+      if (!results || results.length === 0) {
+        Alert.alert(
+          "Sem resultados",
+          "Não encontramos informações para este título."
+        );
+        return;
+      }
+      const best = results[0];
+      setImageUrl(best.imagem ?? imageUrl);
+      // Opcionalmente poderíamos também pré-preencher descrição em InputContext
+      // deixando apenas a capa por ora.
+      Alert.alert("Capa atualizada", "Carregamos a capa a partir do Google.");
+    } catch (err) {
+      Alert.alert(
+        "Falha na busca",
+        "Não foi possível consultar o Google Books."
+      );
+    } finally {
+      setFetchingGoogle(false);
     }
   }
 
@@ -80,7 +152,9 @@ export default function EditBook() {
             <View className="w-[120px] h-[120px] rounded-xl overflow-hidden bg-white">
               <Image
                 source={
-                  imagem ? { uri: imagem } : require("../../../assets/logo.png")
+                  imageUrl
+                    ? { uri: imageUrl }
+                    : require("../../../assets/logo.png")
                 }
                 className="w-full h-full"
                 resizeMode="cover"
@@ -136,7 +210,7 @@ export default function EditBook() {
                   params: {
                     id: id ?? "",
                     titulo: titulo ?? "",
-                    imagem: imagem ?? "",
+                    imagem: imageUrl ?? "",
                   },
                 })
               }

@@ -22,21 +22,26 @@ export default function RootLayout() {
       <InputProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ title: "Login" }} />
-          <Stack.Screen name="home" options={{ title: "Home" }} />
+          <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)/home" options={{ headerShown: false }} />
           <Stack.Screen
-            name="description-book"
-            options={{ title: "Descrição de livro" }}
+            name="(app)/description-book"
+            options={{ headerShown: false }}
           />
-          <Stack.Screen name="edit-book" options={{ title: "Editar livro" }} />
-          <Stack.Screen name="usuario/[id]" options={{ title: "Meu Perfil" }} />
           <Stack.Screen
-            name="adicionar-unilivrer"
-            options={{ title: "Adicionar Unilivrer" }}
+            name="(app)/edit-book"
+            options={{ headerShown: false }}
           />
-          <Stack.Screen name="parceiros" options={{ title: "Parceiros" }} />
-          <Stack.Screen name="user" options={{ title: "Perfil do Usuário" }} />
-          <Stack.Screen name="chat/[id]" options={{ title: "Chat" }} />
+          <Stack.Screen name="(app)/profile" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(app)/add-unilivrer"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="(app)/user" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(app)/chat/[id]"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </InputProvider>
     </AuthProvider>

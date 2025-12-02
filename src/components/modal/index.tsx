@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Image, Pressable, Modal as RNModal } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
 
 type MenuModalProps = {
   visible: boolean;
@@ -24,6 +25,7 @@ export default function MenuModal({
   avatarUri,
 }: MenuModalProps) {
   const router = useRouter();
+  const { signOut } = useAuth();
 
   return (
     <RNModal
@@ -35,7 +37,7 @@ export default function MenuModal({
       <View className="flex-1 bg-black/50 items-center justify-center">
         <View className="bg-[#FFF2F2] w-10/12 rounded-2xl border-2 border-orange-400 p-4">
           <View className="flex flex-row items-center justify-between mb-4">
-            <View className="flex flex-row items-center justify-center gap-2">
+            <View className="flex flex-row items-center justify-start gap-2">
               <Image
                 source={require("../../../assets/logo.png")}
                 className="w-10 h-10"
@@ -77,7 +79,7 @@ export default function MenuModal({
             <Pressable
               onPress={() => {
                 onClose();
-                router.push("/(app)/adicionar-unilivrer");
+                router.push("/add-unilivrer");
               }}
             >
               <Text
@@ -90,31 +92,36 @@ export default function MenuModal({
             <Pressable
               onPress={() => {
                 onClose();
-                router.push("/(app)/home");
+                router.push("/home");
               }}
             >
               <Text
                 className="text-orange-600"
                 style={{ fontFamily: "JosefinSans_600SemiBold" }}
               >
-                Estante de Pessoal
+                Estante Pessoal
+              </Text>
+            </Pressable>
+            {/* Logout */}
+            <Pressable
+              className="mt-2 items-center"
+              onPress={async () => {
+                try {
+                  await signOut();
+                } finally {
+                  onClose();
+                  router.replace("/login");
+                }
+              }}
+            >
+              <Text
+                className="text-red-600"
+                style={{ fontFamily: "JosefinSans_600SemiBold" }}
+              >
+                Sair
               </Text>
             </Pressable>
           </View>
-          <Pressable
-            className="mt-6 items-center"
-            onPress={() => {
-              onClose();
-              router.push("/(app)/profile");
-            }}
-          >
-            <Text
-              className="text-[#4B1D0E]"
-              style={{ fontFamily: "JosefinSans_600SemiBold" }}
-            >
-              Configurações
-            </Text>
-          </Pressable>
         </View>
       </View>
     </RNModal>

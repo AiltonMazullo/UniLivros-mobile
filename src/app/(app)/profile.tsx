@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Image, Pressable, ScrollView } from "react-native";
 import { Header } from "../../components/header";
-import {
-  UsersService,
-  UserSummary,
-} from "../../features/users/services/UsersService";
+import { UsersService, UserSummary } from "../../services/UsersService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
+import { MyBooks } from "../../components/my-books";
 
 type Tab = "books" | "help" | "achievements";
 
@@ -14,17 +13,69 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<Tab>("books");
   const [user, setUser] = useState<UserSummary | null>(null);
   const router = useRouter();
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
-    UsersService.getById(1).then(setUser);
-  }, []);
+    if (authUser?.id) {
+      UsersService.getById(authUser.id)
+        .then(setUser)
+        .catch(() => setUser(null));
+    } else {
+      setUser(null);
+    }
+  }, [authUser?.id]);
+
+  const achievements = useMemo(() => {
+    const trocaCount = user?.livrosTrocados ?? 0;
+    const avaliacoes = user?.avaliacoes ?? 0;
+    const seguidores = user?.seguidores ?? 0;
+
+    const items = [
+      {
+        title: "Primeira Troca",
+        description: "Concluiu a primeira troca de livros",
+        achieved: trocaCount >= 1,
+      },
+      {
+        title: "Leitor Ativo",
+        description: "Concluiu 5 trocas",
+        achieved: trocaCount >= 5,
+      },
+      {
+        title: "Engajado",
+        description: "Concluiu 10 trocas",
+        achieved: trocaCount >= 10,
+      },
+      {
+        title: "Influente",
+        description: "Atingiu 10 seguidores",
+        achieved: seguidores >= 10,
+      },
+      {
+        title: "Avaliador",
+        description: "Realizou 1 avaliação",
+        achieved: avaliacoes >= 1,
+      },
+    ];
+    return items;
+  }, [user?.livrosTrocados, user?.avaliacoes, user?.seguidores]);
+
+  const xpStats = useMemo(() => {
+    const trocaCount = user?.livrosTrocados ?? 0;
+    const seguidores = user?.seguidores ?? 0;
+    const avaliacoes = user?.avaliacoes ?? 0;
+    const xp = trocaCount * 50 + seguidores * 2 + avaliacoes * 5;
+    const target = 1000;
+    const progressPct = Math.min(100, Math.round((xp / target) * 100));
+    return { xp, target, progressPct };
+  }, [user?.livrosTrocados, user?.seguidores, user?.avaliacoes]);
 
   return (
     <ScrollView className="w-full h-full bg-cream">
       <Header />
 
       {/* Cabeçalho do Perfil */}
-      <View className="flex flex-col justify-center items-center mt-6 mb-4">
+      <View className="flex flex-col justify-center items-center mt-6 mb-4 gap-4">
         <View className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#F29F05] bg-white items-center justify-center">
           {user?.avatarUrl ? (
             <Image source={{ uri: user.avatarUrl }} className="w-24 h-24" />
@@ -39,16 +90,14 @@ export default function Profile() {
             className="text-[#4B1D0E]"
             style={{ fontFamily: "JosefinSans_700Bold", fontSize: 22 }}
           >
-            {user?.nome ?? "Meu Perfil"}
+            {user?.nome ?? authUser?.nome ?? "Meu Perfil"}
           </Text>
           <Pressable
             className="ml-3 px-3 py-1 rounded-full bg-orange-200 border border-[#F29F05]"
-            onPress={() =>
-              router.push({
-                pathname: "/(app)/chat/[id]",
-                params: { id: String(user?.id ?? 1) },
-              })
-            }
+            onPress={() => {
+              const targetId = String(user?.id ?? authUser?.id ?? 1);
+              router.push(`/chat/${targetId}`);
+            }}
           >
             <Text
               className="text-[#4B1D0E]"
@@ -62,8 +111,8 @@ export default function Profile() {
           className="text-[#4B1D0E] opacity-70 mt-1"
           style={{ fontFamily: "JosefinSans_400Regular" }}
         >
-          Livros trocados {user?.livrosTrocados ?? 6} • Avaliações{" "}
-          {user?.avaliacoes ?? 4.8}
+          Livros trocados {user?.livrosTrocados ?? 0} • Avaliações{" "}
+          {user?.avaliacoes ?? 0}
         </Text>
       </View>
 
@@ -114,19 +163,7 @@ export default function Profile() {
       </View>
 
       {/* Conteúdo dos módulos */}
-      {activeTab === "books" && (
-        <View className="px-6 mt-6">
-          <View className="flex-row flex-wrap gap-4 justify-center">
-            {[...Array(6)].map((_, idx) => (
-              <Image
-                key={idx}
-                source={require("../../../assets/logo.png")}
-                className="w-20 h-28 rounded-md"
-              />
-            ))}
-          </View>
-        </View>
-      )}
+      {activeTab === "books" && <MyBooks />}
 
       {activeTab === "help" && (
         <View className="px-6 mt-6">
@@ -162,47 +199,50 @@ export default function Profile() {
             <View className="w-full h-3 bg-[#FFE3CC] rounded-full">
               <View
                 className="h-full bg-[#F29F05] rounded-full"
-                style={{ width: "65%" }}
+                style={{ width: `${xpStats.progressPct}%` }}
               />
             </View>
             <Text
               className="mt-2 text-[#4B1D0E] opacity-80"
               style={{ fontFamily: "JosefinSans_400Regular" }}
             >
-              650 / 1000
+              {xpStats.xp} / {xpStats.target}
             </Text>
           </View>
 
           {/* Cards de conquistas */}
           <View className="gap-4">
-            <View className="bg-white rounded-xl p-4">
-              <Text
-                className="text-[#4B1D0E]"
-                style={{ fontFamily: "JosefinSans_700Bold" }}
+            {achievements.map((a, idx) => (
+              <View
+                key={`${a.title}-${idx}`}
+                className="bg-white rounded-xl p-4 border"
+                style={{ borderColor: a.achieved ? "#F29F05" : "#EEE" }}
               >
-                Engajado!
-              </Text>
-              <Text
-                className="mt-1 text-[#4B1D0E] opacity-80"
-                style={{ fontFamily: "JosefinSans_400Regular" }}
-              >
-                Fez 10 trocas
-              </Text>
-            </View>
-            <View className="bg-white rounded-xl p-4">
-              <Text
-                className="text-[#4B1D0E]"
-                style={{ fontFamily: "JosefinSans_700Bold" }}
-              >
-                Super Confiável!
-              </Text>
-              <Text
-                className="mt-1 text-[#4B1D0E] opacity-80"
-                style={{ fontFamily: "JosefinSans_400Regular" }}
-              >
-                Média de avaliação acima de 4.5
-              </Text>
-            </View>
+                <Text
+                  className="text-[#4B1D0E]"
+                  style={{ fontFamily: "JosefinSans_700Bold" }}
+                >
+                  {a.title}
+                </Text>
+                <Text
+                  className="mt-1 text-[#4B1D0E] opacity-80"
+                  style={{ fontFamily: "JosefinSans_400Regular" }}
+                >
+                  {a.description}
+                </Text>
+                {!a.achieved && (
+                  <Text
+                    className="mt-2 text-[#4B1D0E] opacity-60"
+                    style={{
+                      fontFamily: "JosefinSans_400Regular",
+                      fontSize: 12,
+                    }}
+                  >
+                    Em progresso
+                  </Text>
+                )}
+              </View>
+            ))}
           </View>
         </View>
       )}
