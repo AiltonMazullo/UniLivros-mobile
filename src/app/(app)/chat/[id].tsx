@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { UsersService } from "../../../services/UsersService";
 import api from "../../../services/api";
 import { useAuth } from "../../../context/AuthContext";
+import { Screen } from "../../../components/Screen";
 
 type ChatMessage = {
   id: string;
@@ -77,7 +78,7 @@ export default function ChatScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#FFF2F2]">
+    <Screen className="bg-[#FFF2F2]">
       <View className="flex-row items-center gap-3 p-4">
         <Pressable onPress={() => router.back()} className="p-2">
           <Feather name="arrow-left" size={22} color="#4B1D0E" />
@@ -123,6 +124,6 @@ export default function ChatScreen() {
           <Text className="text-[#4B1D0E]">Enviar</Text>
         </Pressable>
       </View>
-    </View>
+    </Screen>
   );
 }

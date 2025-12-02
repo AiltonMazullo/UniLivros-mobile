@@ -6,6 +6,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { BooksService } from "../../services/books";
 import { Book } from "../../types/book";
 import { GoogleBooksService } from "../../services/googleBooks";
+import { Screen } from "../../components/Screen";
 
 export default function UsuarioPerfil() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,75 +67,77 @@ export default function UsuarioPerfil() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#FFF2F2]" contentContainerClassName="p-4">
-      <View className="items-center mb-4">
-        <View className="w-20 h-20 rounded-full overflow-hidden border border-orange-400 bg-white items-center justify-center">
-          {user?.avatarUrl ? (
-            <Image source={{ uri: user.avatarUrl }} className="w-20 h-20" />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-white">
-              <Ionicons name="person" size={42} color="#4B1D0E" />
-            </View>
-          )}
+    <Screen className="bg-[#FFF2F2]">
+      <ScrollView className="flex-1" contentContainerClassName="p-4">
+        <View className="items-center mb-4">
+          <View className="w-20 h-20 rounded-full overflow-hidden border border-orange-400 bg-white items-center justify-center">
+            {user?.avatarUrl ? (
+              <Image source={{ uri: user.avatarUrl }} className="w-20 h-20" />
+            ) : (
+              <View className="w-full h-full items-center justify-center bg-white">
+                <Ionicons name="person" size={42} color="#4B1D0E" />
+              </View>
+            )}
+          </View>
+          <Text
+            className="text-2xl text-[#4B1D0E] mt-2"
+            style={{ fontFamily: "JosefinSans_600SemiBold" }}
+          >
+            {user.nome}
+          </Text>
+          <Text className="text-gray-600">
+            Livros trocados {user.livrosTrocados ?? 0} • Avaliações{" "}
+            {user.avaliacoes ?? 0}
+          </Text>
         </View>
-        <Text
-          className="text-2xl text-[#4B1D0E] mt-2"
-          style={{ fontFamily: "JosefinSans_600SemiBold" }}
-        >
-          {user.nome}
-        </Text>
-        <Text className="text-gray-600">
-          Livros trocados {user.livrosTrocados ?? 0} • Avaliações{" "}
-          {user.avaliacoes ?? 0}
-        </Text>
-      </View>
 
-      <View className="flex flex-row gap-3 justify-center mb-4">
-        <Pressable
-          className="px-4 py-2 rounded-full bg-orange-300"
-          onPress={() =>
-            router.push({
-              pathname: "/chat/[id]",
-              params: { id: String(user?.id) },
-            })
-          }
-        >
-          <Text className="text-[#4B1D0E]">Enviar Mensagem</Text>
-        </Pressable>
-      </View>
-
-      <View className="flex flex-row gap-3 w-full flex-wrap justify-center">
-        {books.map((livro) => (
+        <View className="flex flex-row gap-3 justify-center mb-4">
           <Pressable
-            key={livro.id}
+            className="px-4 py-2 rounded-full bg-orange-300"
             onPress={() =>
               router.push({
-                pathname: "/(app)/description-book",
-                params: {
-                  id: String(livro.id),
-                  titulo: livro.titulo,
-                  imagem: livro.imagem ?? "",
-                },
+                pathname: "/(app)/chat/[id]",
+                params: { id: String(user?.id) },
               })
             }
           >
-            <View className="w-16 h-24 rounded-lg overflow-hidden bg-white border border-orange-300">
-              <Image
-                source={
-                  livro.imagem
-                    ? { uri: livro.imagem }
-                    : require("../../../assets/logo.png")
-                }
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            </View>
+            <Text className="text-[#4B1D0E]">Enviar Mensagem</Text>
           </Pressable>
-        ))}
-        {books.length === 0 && (
-          <Text className="text-gray-600">Nenhum livro encontrado.</Text>
-        )}
-      </View>
-    </ScrollView>
+        </View>
+
+        <View className="flex flex-row gap-3 w-full flex-wrap justify-center">
+          {books.map((livro) => (
+            <Pressable
+              key={livro.id}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/description-book",
+                  params: {
+                    id: String(livro.id),
+                    titulo: livro.titulo,
+                    imagem: livro.imagem ?? "",
+                  },
+                })
+              }
+            >
+              <View className="w-16 h-24 rounded-lg overflow-hidden bg-white border border-orange-300">
+                <Image
+                  source={
+                    livro.imagem
+                      ? { uri: livro.imagem }
+                      : require("../../../assets/logo.png")
+                  }
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </View>
+            </Pressable>
+          ))}
+          {books.length === 0 && (
+            <Text className="text-gray-600">Nenhum livro encontrado.</Text>
+          )}
+        </View>
+      </ScrollView>
+    </Screen>
   );
 }

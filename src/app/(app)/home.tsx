@@ -3,6 +3,7 @@ import { View, Text, Image, Pressable, ScrollView } from "react-native";
 import { Header } from "../../components/header";
 import { MyBooks } from "../../components/my-books";
 import { BooksUnilivrers } from "@/src/components/books-unilivrers";
+import { Screen } from "../../components/Screen";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"personal" | "unilivros">(
@@ -10,7 +11,8 @@ export default function Home() {
   );
 
   return (
-    <ScrollView className="w-full h-full bg-cream">
+    <Screen className="bg-cream">
+      <ScrollView className="w-full h-full">
       <Header />
       <View className="relative flex-row items-center text-center px-8 border-b-[4] border-white">
         <Pressable
@@ -44,6 +46,7 @@ export default function Home() {
       </View>
       {activeTab === "personal" ? <MyBooks /> : null}
       {activeTab === "unilivros" ? <BooksUnilivrers /> : null}
-    </ScrollView>
+      </ScrollView>
+    </Screen>
   );
 }
