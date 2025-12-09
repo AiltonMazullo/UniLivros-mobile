@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, Image, ScrollView, Pressable } from "react-native";
+import { formatEstado, formatTipo } from "../../utils/bookFormat";
 import { BooksService } from "../../services/books";
 import { Book } from "../../types/book";
 import { useAuth } from "../../context/AuthContext";
 import { GoogleBooksService } from "../../services/googleBooks";
 import { useFocusEffect } from "@react-navigation/native";
+import { UsersService, UserSummary } from "../../services/UsersService";
 
 export type TipoLivro = "troca" | "venda" | "emprestimo";
 export type EstadoLivro = "novo" | "seminovo" | "usado";
@@ -14,21 +16,23 @@ export function BooksUnilivrers() {
   const router = useRouter();
   const { user } = useAuth();
   const [books, setBooks] = useState<Book[]>([]);
+  const [owners, setOwners] = useState<Record<string, UserSummary | null>>({});
 
   const fetchBooks = useCallback(() => {
     BooksService.getAll()
       .then((all) => {
-        const others = user
-          ? all.filter((b) => String(b.usuarioId) !== String(user.id))
-          : all;
-        setBooks(others);
+        const booksFromOthers = all.filter((b) => {
+          if (!user?.id) return true; // sem usuário autenticado, mostra todos
+          return String(b.usuarioId) !== String(user.id);
+        });
+        setBooks(booksFromOthers);
         (async () => {
-          const missing = others.filter((b) => !b.imagem && b.titulo);
+          const missing = booksFromOthers.filter((b) => !b.imagem && b.titulo);
           if (missing.length === 0) return;
           try {
-            const top = missing.slice(0, 3);
+            const targets = missing;
             const updates = await Promise.all(
-              top.map(async (b) => {
+              targets.map(async (b) => {
                 const res = await GoogleBooksService.search(b.titulo);
                 const best = res[0];
                 return best?.imagem
@@ -59,6 +63,39 @@ export function BooksUnilivrers() {
   useEffect(() => {
     fetchBooks();
   }, [fetchBooks]);
+
+  // Carrega dados dos donos dos livros exibidos
+  useEffect(() => {
+    const ownerIds = Array.from(
+      new Set(
+        books
+          .map((b) => (b.usuarioId != null ? String(b.usuarioId) : null))
+          .filter((v): v is string => !!v)
+      )
+    );
+    const missingIds = ownerIds.filter((id) => owners[id] === undefined);
+    if (missingIds.length === 0) return;
+    (async () => {
+      try {
+        const results = await Promise.all(
+          missingIds.map(async (id) => {
+            const data = await UsersService.getById(Number(id));
+            return { id, user: data ?? null } as {
+              id: string;
+              user: UserSummary | null;
+            };
+          })
+        );
+        setOwners((prev) => {
+          const next = { ...prev };
+          results.forEach(({ id, user }) => {
+            next[id] = user;
+          });
+          return next;
+        });
+      } catch {}
+    })();
+  }, [books]);
 
   useFocusEffect(
     useCallback(() => {
@@ -95,8 +132,10 @@ export function BooksUnilivrers() {
                   {livro.titulo}
                 </Text>
                 <Text className="text-xs text-[#FFFFFF] mt-0">
-                  Tipo: {livro.tipo}
-                  {"\n"}Estado: {livro.estado}
+                  Tipo: {formatTipo(livro.tipo as any)}
+                  {"\n"}Estado: {formatEstado(livro.estado as any)}
+                  {"\n"}Email:{" "}
+                  {owners[String(livro.usuarioId)]?.email ?? "não informado"}
                 </Text>
               </View>
 
@@ -119,28 +158,6 @@ export function BooksUnilivrers() {
                     style={{ fontSize: 10 }}
                   >
                     Descrição
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  className="bg-[#FFF2F9] rounded-full px-4 self-center"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(app)/edit-book",
-                      params: {
-                        id: String(livro.id),
-                        titulo: livro.titulo,
-                        imagem: livro.imagem ?? "",
-                        // texto: livro.texto ?? "",
-                      },
-                    })
-                  }
-                >
-                  <Text
-                    className="text-[#5A211A] text-base text-center font-semibold"
-                    style={{ fontSize: 10 }}
-                  >
-                    Editar
                   </Text>
                 </Pressable>
               </View>

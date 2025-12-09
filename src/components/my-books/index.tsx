@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, Image, ScrollView, Pressable } from "react-native";
+import { formatEstado, formatTipo } from "../../utils/bookFormat";
 import { useRouter } from "expo-router";
 import { BooksService } from "../../services/books";
 import { Book } from "../../types/book";
@@ -17,16 +18,16 @@ export function MyBooks() {
       setBooks([]);
       return;
     }
-    BooksService.getByUsuarioId(String(user.id))
+    BooksService.getMine()
       .then((mine) => {
         setBooks(mine);
         (async () => {
           const missing = mine.filter((b) => !b.imagem && b.titulo);
           if (missing.length === 0) return;
           try {
-            const top = missing.slice(0, 3);
+            const targets = missing;
             const updates = await Promise.all(
-              top.map(async (b) => {
+              targets.map(async (b) => {
                 const res = await GoogleBooksService.search(b.titulo);
                 const best = res[0];
                 return best?.imagem
@@ -51,7 +52,11 @@ export function MyBooks() {
           } catch {}
         })();
       })
-      .catch(() => setBooks([]));
+      .catch(() => {
+        BooksService.getByUsuarioId(String(user.id))
+          .then((fallback) => setBooks(fallback))
+          .catch(() => setBooks([]));
+      });
   }, [user]);
 
   useEffect(() => {
@@ -93,13 +98,13 @@ export function MyBooks() {
                   {livro.titulo}
                 </Text>
                 <Text className="text-xs text-[#FFFFFF] mt-1">
-                  Tipo: {livro.tipo}
-                  {"\n"}Estado: {livro.estado}
+                  Tipo: {formatTipo(livro.tipo as any)}
+                  {"\n"}Estado: {formatEstado(livro.estado as any)}
                 </Text>
               </View>
 
               <Pressable
-                className="bg-[#F29F05] rounded-full px-5 py-1 self-center mb-3"
+                className="bg-[#F29F05] rounded-full px-5 py-1 self-start mb-3"
                 onPress={() =>
                   router.push({
                     pathname: "/(app)/description-book",

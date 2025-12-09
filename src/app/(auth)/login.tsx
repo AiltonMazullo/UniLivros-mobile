@@ -26,6 +26,38 @@ export default function Login() {
   const { signIn } = useAuth();
   const REQUIRED_DOMAIN = "@souunit.com.br";
 
+  const handleLogin = async () => {
+    if (!email) {
+      Alert.alert("Login", "E-mail é obrigatório");
+      return;
+    }
+    const normalized = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalized)) {
+      Alert.alert("Login", "E-mail inválido");
+      return;
+    }
+    if (!normalized.endsWith(REQUIRED_DOMAIN)) {
+      Alert.alert("Login", `O e-mail deve ser do domínio ${REQUIRED_DOMAIN}`);
+      return;
+    }
+    if (!password || password.trim().length === 0) {
+      Alert.alert("Login", "Senha é obrigatória");
+      return;
+    }
+    try {
+      setLoading(true);
+      await signIn(email, password);
+      router.push("/home");
+    } catch (e) {
+      const msg =
+        (e as any)?.message || "Falha ao autenticar. Verifique e-mail e senha.";
+      Alert.alert("Login", msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Screen className="bg-white">
       <KeyboardAvoidingView
@@ -100,41 +132,7 @@ export default function Login() {
               <Pressable
                 className="mt-4 bg-[#F29F05] rounded-full px-6 py-3 active:bg-[#D4890A] disabled:bg-[#c98305]"
                 disabled={loading || !email || !password}
-                onPress={async () => {
-                  if (!email) {
-                    Alert.alert("Login", "E-mail é obrigatório");
-                    return;
-                  }
-                  const normalized = email.trim().toLowerCase();
-                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                  if (!emailRegex.test(normalized)) {
-                    Alert.alert("Login", "E-mail inválido");
-                    return;
-                  }
-                  if (!normalized.endsWith(REQUIRED_DOMAIN)) {
-                    Alert.alert(
-                      "Login",
-                      `O e-mail deve ser do domínio ${REQUIRED_DOMAIN}`
-                    );
-                    return;
-                  }
-                  if (!password || password.trim().length === 0) {
-                    Alert.alert("Login", "Senha é obrigatória");
-                    return;
-                  }
-                  try {
-                    setLoading(true);
-                    await signIn(email, password);
-                    router.push("/home");
-                  } catch (e) {
-                    const msg =
-                      (e as any)?.message ||
-                      "Falha ao autenticar. Verifique e-mail e senha.";
-                    Alert.alert("Login", msg);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onPress={handleLogin}
               >
                 {loading ? (
                   <View className="flex-row items-center justify-center gap-2">

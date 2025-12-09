@@ -1,5 +1,6 @@
 import React from "react";
-import { SafeAreaView, StatusBar, Platform, ViewStyle } from "react-native";
+import { ViewStyle } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   children: React.ReactNode;
@@ -8,11 +9,13 @@ type Props = {
 };
 
 export function Screen({ children, className, style }: Props) {
-  const topInset = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
   return (
-    <SafeAreaView className={className} style={[{ flex: 1, paddingTop: topInset }, style]}>
+    <SafeAreaView
+      edges={["top"]}
+      className={className}
+      style={[{ flex: 1 }, style]}
+    >
       {children}
     </SafeAreaView>
   );
 }
-

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Image, Pressable, ScrollView } from "react-native";
+import { View, Text, Image, Pressable, ScrollView, Modal } from "react-native";
 import { Header } from "../../components/header";
 import { UsersService, UserSummary } from "../../services/UsersService";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,6 +15,7 @@ export default function Profile() {
   const [user, setUser] = useState<UserSummary | null>(null);
   const router = useRouter();
   const { user: authUser } = useAuth();
+  const [showAvatar, setShowAvatar] = useState(false);
 
   useEffect(() => {
     if (authUser?.id) {
@@ -76,7 +77,6 @@ export default function Profile() {
       <ScrollView className="w-full h-full">
         <Header />
 
-        {/* Cabeçalho do Perfil */}
         <View className="flex flex-col justify-center items-center mt-6 mb-4 gap-4">
           <View className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#F29F05] bg-white items-center justify-center">
             {user?.avatarUrl ? (
@@ -94,20 +94,43 @@ export default function Profile() {
             >
               {user?.nome ?? authUser?.nome ?? "Meu Perfil"}
             </Text>
-            <Pressable
-              className="ml-3 px-3 py-1 rounded-full bg-orange-200 border border-[#F29F05]"
-              onPress={() => {
-                const targetId = String(user?.id ?? authUser?.id ?? 1);
-                router.push(`/chat/${targetId}`);
-              }}
-            >
-              <Text
-                className="text-[#4B1D0E]"
-                style={{ fontFamily: "JosefinSans_600SemiBold" }}
-              >
-                Enviar Mensagem
-              </Text>
-            </Pressable>
+            {(() => {
+              const isSelf = !user || user?.id === authUser?.id;
+              if (isSelf) {
+                return (
+                  <Pressable
+                    className="ml-3 px-3 py-1 rounded-full bg-orange-200 border border-[#F29F05]"
+                    onPress={() => setShowAvatar(true)}
+                  >
+                    <Text
+                      className="text-[#4B1D0E]"
+                      style={{ fontFamily: "JosefinSans_600SemiBold" }}
+                    >
+                      Ver foto de perfil
+                    </Text>
+                  </Pressable>
+                );
+              }
+              return (
+                <Pressable
+                  className="ml-3 px-3 py-1 rounded-full bg-orange-200 border border-[#F29F05]"
+                  onPress={() => {
+                    const targetId = String(user?.id);
+                    router.push({
+                      pathname: "/(app)/chat/[id]",
+                      params: { id: targetId },
+                    });
+                  }}
+                >
+                  <Text
+                    className="text-[#4B1D0E]"
+                    style={{ fontFamily: "JosefinSans_600SemiBold" }}
+                  >
+                    Enviar Mensagem
+                  </Text>
+                </Pressable>
+              );
+            })()}
           </View>
           <Text
             className="text-[#4B1D0E] opacity-70 mt-1"
@@ -159,14 +182,7 @@ export default function Profile() {
             />
           </Pressable>
         </View>
-        <View className="absolute bottom-0 self-center h-12 w-[4] bg-white rounded-full" />
-        <View className="relative px-8 mt-0">
-          <View className="h-[4] w-full bg-white" />
-        </View>
-
-        {/* Conteúdo dos módulos */}
         {activeTab === "books" && <MyBooks />}
-
         {activeTab === "help" && (
           <View className="px-6 mt-6">
             <View className="bg-white rounded-xl p-4 shadow-sm">
@@ -190,7 +206,6 @@ export default function Profile() {
 
         {activeTab === "achievements" && (
           <View className="px-6 mt-6">
-            {/* Barra de progresso de XP */}
             <View className="mb-6">
               <Text
                 className="text-[#4B1D0E] mb-2"
@@ -212,7 +227,6 @@ export default function Profile() {
               </Text>
             </View>
 
-            {/* Cards de conquistas */}
             <View className="gap-4">
               {achievements.map((a, idx) => (
                 <View
@@ -249,6 +263,37 @@ export default function Profile() {
           </View>
         )}
       </ScrollView>
+      <Modal
+        visible={showAvatar}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAvatar(false)}
+      >
+        <View className="flex-1 bg-black/60 items-center justify-center">
+          <View className="bg-white rounded-2xl p-4 items-center max-w-[90%]">
+            <View className="w-48 h-48 rounded-full overflow-hidden bg-white items-center justify-center">
+              {user?.avatarUrl || authUser?.avatarUrl ? (
+                <Image
+                  source={{
+                    uri: String(user?.avatarUrl ?? authUser?.avatarUrl),
+                  }}
+                  className="w-48 h-48"
+                />
+              ) : (
+                <View className="w-48 h-48 items-center justify-center bg-white">
+                  <Ionicons name="person" size={64} color="#4B1D0E" />
+                </View>
+              )}
+            </View>
+            <Pressable
+              className="mt-4 px-4 py-2 rounded-full bg-orange-200"
+              onPress={() => setShowAvatar(false)}
+            >
+              <Text className="text-[#4B1D0E]">Fechar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }

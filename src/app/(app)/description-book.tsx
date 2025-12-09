@@ -1,21 +1,11 @@
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  ScrollView,
-  TextInput,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, Image, Pressable, ScrollView } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { BooksService } from "../../services/books";
 import { useInputContext } from "../../context/InputContext";
 import { Header } from "@/src/components/header";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Screen } from "../../components/Screen";
 
 export default function DescriptionBook() {
   const router = useRouter();
@@ -26,11 +16,9 @@ export default function DescriptionBook() {
     imagem?: string;
   }>();
 
-  const { getDescricao, setDescricao: setContextDescricao } = useInputContext();
+  const { getDescricao } = useInputContext();
   const [descricao, setDescricao] = useState<string>("");
-  const maxChars = 1000;
-  const insets = useSafeAreaInsets();
-  const keyboardOffset = insets.top + 56; // 56 ~ altura típica do Header custom
+  const hasDescricao = descricao && descricao.trim().length > 0;
 
   useEffect(() => {
     const initial = getDescricao(String(id)) ?? (texto as string) ?? "";
@@ -46,33 +34,10 @@ export default function DescriptionBook() {
     }
   }, [id, texto]);
 
-  async function handleSave() {
-    if (!id) {
-      Alert.alert("Erro", "ID do livro não informado.");
-      return;
-    }
-    try {
-      await BooksService.update(String(id), { descricao });
-      setContextDescricao(String(id), descricao);
-      Alert.alert("Sucesso", "Resumo atualizado com sucesso!");
-      router.back();
-    } catch (error: any) {
-      Alert.alert(
-        "Falha ao salvar",
-        error?.response?.data?.message || "Tente novamente mais tarde."
-      );
-    }
-  }
-
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={keyboardOffset}
-    >
+    <Screen className="bg-cream">
       <ScrollView
-        className="w-full h-full bg-cream"
-        keyboardShouldPersistTaps="handled"
+        className="w-full h-full"
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         <Header />
@@ -107,41 +72,21 @@ export default function DescriptionBook() {
               </Text>
 
               <View className="mt-3 w-full">
-                <TextInput
-                  multiline
-                  value={descricao}
-                  onChangeText={(t) => setDescricao(t)}
-                  placeholder="Digite aqui o resumo do livro..."
-                  placeholderTextColor="#EBD4C0"
-                  className="text-white text-sm leading-5 p-3 rounded-xl border border-[#2E86C1]"
-                  style={{
-                    fontFamily: "JosefinSans_400Regular",
-                    minHeight: 160,
-                    textAlignVertical: "top",
-                  }}
-                  maxLength={maxChars}
-                />
-                <View className="mt-1 w-full">
+                <View className="p-3 rounded-xl border border-[#2E86C1] bg-[#5A211A]">
                   <Text
-                    className="text-[#EBD4C0] text-xs text-right"
+                    className="text-white text-sm leading-5"
                     style={{ fontFamily: "JosefinSans_400Regular" }}
                   >
-                    {descricao.length}/{maxChars}
+                    {hasDescricao
+                      ? descricao
+                      : "Nenhum resumo disponível para este livro."}
                   </Text>
                 </View>
               </View>
-
-              {/* Botão salvar */}
-              <Pressable
-                className="bg-[#7AC70C] rounded-full px-6 py-3 mt-4 w-9/12"
-                onPress={handleSave}
-              >
-                <Text className="text-white text-center font-bold">Salvar</Text>
-              </Pressable>
             </View>
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </Screen>
   );
 }

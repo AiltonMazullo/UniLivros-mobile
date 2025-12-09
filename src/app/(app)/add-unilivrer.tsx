@@ -41,7 +41,7 @@ export default function AdicionarUnilivrer() {
   return (
     <Screen className="bg-[#FFF2F2]">
       <ScrollView className="flex-1" contentContainerClassName="p-4">
-        <View>
+        <View className="flex flex-row items-center mb-4">
           <Feather
             name="arrow-left"
             size={24}
@@ -49,7 +49,7 @@ export default function AdicionarUnilivrer() {
             onPress={() => router.back()}
           />
           <Text
-            className="text-center text-[#4B1D0E] text-xl mb-4 "
+            className="flex-1 text-center text-[#4B1D0E] text-xl"
             style={{ fontFamily: "JosefinSans_600SemiBold" }}
           >
             Adicionar Unilivrer
@@ -106,7 +106,7 @@ export default function AdicionarUnilivrer() {
                 <Pressable
                   onPress={() =>
                     router.push({
-                      pathname: "/user",
+                      pathname: "/(app)/user",
                       params: { id: String(u.id) },
                     })
                   }

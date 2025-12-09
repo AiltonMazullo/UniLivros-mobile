@@ -27,6 +27,15 @@ export default function MenuModal({
   const router = useRouter();
   const { signOut } = useAuth();
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } finally {
+      onClose();
+      router.replace("/login");
+    }
+  };
+
   return (
     <RNModal
       transparent
@@ -61,7 +70,6 @@ export default function MenuModal({
             </Pressable>
           </View>
 
-          {/* Options */}
           <View className="gap-4 items-center">
             <Pressable
               onPress={() => {
@@ -102,20 +110,9 @@ export default function MenuModal({
                 Estante Pessoal
               </Text>
             </Pressable>
-            {/* Logout */}
-            <Pressable
-              className="mt-2 items-center"
-              onPress={async () => {
-                try {
-                  await signOut();
-                } finally {
-                  onClose();
-                  router.replace("/login");
-                }
-              }}
-            >
+            <Pressable onPress={handleLogout}>
               <Text
-                className="text-red-600"
+                className="text-orange-600"
                 style={{ fontFamily: "JosefinSans_600SemiBold" }}
               >
                 Sair
