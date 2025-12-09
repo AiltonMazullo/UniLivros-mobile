@@ -31,7 +31,7 @@ unilivros-mobile/
 │   │   ├── (app)/user.tsx
 │   │   ├── (app)/description-book.tsx
 │   │   ├── (app)/add-unilivrer.tsx
-│   │   └── (app)/chat/[id].tsx
+│   │   └── (app)/exchange.tsx
 │   ├── components/             # UI compartilhada (books-unilivrers, my-books, etc.)
 │   ├── context/                # AuthContext, InputContext
 │   ├── services/               # API, BooksService, UsersService
