@@ -110,6 +110,19 @@ export default function MenuModal({
                 Estante Pessoal
               </Text>
             </Pressable>
+            <Pressable
+              onPress={() => {
+                onClose();
+                router.push("/(app)/exchange");
+              }}
+            >
+              <Text
+                className="text-orange-600"
+                style={{ fontFamily: "JosefinSans_600SemiBold" }}
+              >
+                Propostas de Troca
+              </Text>
+            </Pressable>
             <Pressable onPress={handleLogout}>
               <Text
                 className="text-orange-600"

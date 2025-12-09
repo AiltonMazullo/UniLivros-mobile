@@ -125,13 +125,6 @@ export default function UserProfile() {
     router.back();
   }, [router]);
 
-  const handleNavigateToChat = useCallback(() => {
-    if (!user?.id) return;
-    router.push({
-      pathname: "/(app)/chat/[id]",
-      params: { id: String(user.id) },
-    });
-  }, [router, user?.id]);
 
   const handleNavigateToBook = useCallback(
     (livro: Book) => {
@@ -231,27 +224,17 @@ export default function UserProfile() {
             {user.nome}
           </Text>
           <Text className="text-gray-600">
-            Livros trocados {user.livrosTrocados ?? 0} • Avaliações{" "}
-            {user.avaliacoes ?? 0}
+            Livros {books.length} • Avaliações {user.avaliacoes ?? 0}
           </Text>
         </View>
 
         <View className="flex flex-row gap-3 justify-center mb-4">
-          {isOwnProfile ? (
-            <Pressable
-              className="px-4 py-2 rounded-full bg-orange-300"
-              onPress={() => setAvatarModalOpen(true)}
-            >
-              <Text className="text-[#4B1D0E]">Ver foto de perfil</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              className="px-4 py-2 rounded-full bg-orange-300"
-              onPress={handleNavigateToChat}
-            >
-              <Text className="text-[#4B1D0E]">Enviar Mensagem</Text>
-            </Pressable>
-          )}
+          <Pressable
+            className="px-4 py-2 rounded-full bg-orange-300"
+            onPress={() => setAvatarModalOpen(true)}
+          >
+            <Text className="text-[#4B1D0E]">Ver foto de perfil</Text>
+          </Pressable>
         </View>
 
         <View className="flex flex-row gap-3 w-full flex-wrap justify-center">

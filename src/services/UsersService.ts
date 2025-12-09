@@ -28,7 +28,9 @@ export const UsersService = {
     return data;
   },
   async getByLivroId(livroId: string): Promise<UserSummary[]> {
-    const { data } = await api.get<UserSummary[]>(`/livros/${livroId}/usuarios`);
-    return Array.isArray(data) ? data : (data?.usuarios ?? []);
+    const { data } = await api.get<UserSummary[]>(
+      `/livros/${livroId}/usuarios`
+    );
+    return Array.isArray(data) ? data : data?.usuarios ?? [];
   },
 };

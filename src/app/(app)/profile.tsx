@@ -111,33 +111,14 @@ export default function Profile() {
                   </Pressable>
                 );
               }
-              return (
-                <Pressable
-                  className="ml-3 px-3 py-1 rounded-full bg-orange-200 border border-[#F29F05]"
-                  onPress={() => {
-                    const targetId = String(user?.id);
-                    router.push({
-                      pathname: "/(app)/chat/[id]",
-                      params: { id: targetId },
-                    });
-                  }}
-                >
-                  <Text
-                    className="text-[#4B1D0E]"
-                    style={{ fontFamily: "JosefinSans_600SemiBold" }}
-                  >
-                    Enviar Mensagem
-                  </Text>
-                </Pressable>
-              );
+              return null;
             })()}
           </View>
           <Text
             className="text-[#4B1D0E] opacity-70 mt-1"
             style={{ fontFamily: "JosefinSans_400Regular" }}
           >
-            Livros trocados {user?.livrosTrocados ?? 0} • Avaliações{" "}
-            {user?.avaliacoes ?? 0}
+            Livros que possuo: • Avaliações {user?.avaliacoes ?? 0}
           </Text>
         </View>
 

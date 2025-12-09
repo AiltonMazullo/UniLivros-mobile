@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import {
   View,
@@ -12,11 +12,15 @@ import { UsersService, UserSummary } from "../../services/UsersService";
 import { useRouter } from "expo-router";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../context/AuthContext";
+import { BooksService } from "../../services/books";
 
 export default function AdicionarUnilivrer() {
   // Por padrão, mostramos apenas usuários da instituição
   const [query, setQuery] = useState("@souunit.com.br");
   const [results, setResults] = useState<UserSummary[]>([]);
+  const [booksCountByUser, setBooksCountByUser] = useState<
+    Record<string, number>
+  >({});
   const router = useRouter();
   const { user } = useAuth();
 
@@ -37,6 +41,39 @@ export default function AdicionarUnilivrer() {
     // Oculta o próprio usuário na listagem
     return byDomain.filter((u) => (user?.id ? u.id !== user.id : true));
   }, [results, user, domain]);
+
+  // Enriquecimento: carregar quantidade de livros por usuário
+  const isFetchingCountsRef = useRef(false);
+  useEffect(() => {
+    if (filtered.length === 0) return;
+    if (isFetchingCountsRef.current) return;
+    isFetchingCountsRef.current = true;
+    const targets = filtered.slice(0, 20); // limita para evitar excesso
+    (async () => {
+      try {
+        const pairs = await Promise.all(
+          targets.map(async (u) => {
+            try {
+              const books = await BooksService.getByUsuarioId(String(u.id));
+              return [String(u.id), books.length] as const;
+            } catch {
+              return [
+                String(u.id),
+                booksCountByUser[String(u.id)] ?? 0,
+              ] as const;
+            }
+          })
+        );
+        setBooksCountByUser((prev) => {
+          const next = { ...prev };
+          for (const [id, count] of pairs) next[id] = count;
+          return next;
+        });
+      } finally {
+        isFetchingCountsRef.current = false;
+      }
+    })();
+  }, [filtered]);
 
   return (
     <Screen className="bg-[#FFF2F2]">
@@ -97,7 +134,7 @@ export default function AdicionarUnilivrer() {
                     </Text>
                   )}
                   <Text className="text-gray-500 text-xs">
-                    Livros trocados {u.livrosTrocados ?? 0} • Avaliações{" "}
+                    Livros {booksCountByUser[String(u.id)] ?? 0} • Avaliações{" "}
                     {u.avaliacoes ?? 0}
                   </Text>
                 </View>
