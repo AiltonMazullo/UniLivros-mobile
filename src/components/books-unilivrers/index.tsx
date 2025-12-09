@@ -17,12 +17,15 @@ export function BooksUnilivrers() {
   const { user } = useAuth();
   const [books, setBooks] = useState<Book[]>([]);
   const [owners, setOwners] = useState<Record<string, UserSummary | null>>({});
+  const [ownersByBookId, setOwnersByBookId] = useState<
+    Record<string, UserSummary | null>
+  >({});
 
   const fetchBooks = useCallback(() => {
     BooksService.getAll()
       .then((all) => {
         const booksFromOthers = all.filter((b) => {
-          if (!user?.id) return true; // sem usuário autenticado, mostra todos
+          if (!user?.id) return true;
           return String(b.usuarioId) !== String(user.id);
         });
         setBooks(booksFromOthers);
@@ -66,36 +69,76 @@ export function BooksUnilivrers() {
 
   // Carrega dados dos donos dos livros exibidos
   useEffect(() => {
-    const ownerIds = Array.from(
-      new Set(
-        books
-          .map((b) => (b.usuarioId != null ? String(b.usuarioId) : null))
-          .filter((v): v is string => !!v)
-      )
-    );
-    const missingIds = ownerIds.filter((id) => owners[id] === undefined);
-    if (missingIds.length === 0) return;
     (async () => {
-      try {
-        const results = await Promise.all(
-          missingIds.map(async (id) => {
-            const data = await UsersService.getById(Number(id));
-            return { id, user: data ?? null } as {
-              id: string;
-              user: UserSummary | null;
-            };
-          })
-        );
-        setOwners((prev) => {
-          const next = { ...prev };
-          results.forEach(({ id, user }) => {
-            next[id] = user;
+      // 1) Para livros com usuarioId, buscamos o usuário diretamente
+      const ownerIds = Array.from(
+        new Set(
+          books
+            .map((b) => (b.usuarioId != null ? String(b.usuarioId) : null))
+            .filter((v): v is string => !!v)
+        )
+      );
+      const missingOwnerIds = ownerIds.filter((id) => owners[id] === undefined);
+      if (missingOwnerIds.length > 0) {
+        try {
+          const results = await Promise.all(
+            missingOwnerIds.map(async (id) => {
+              const data = await UsersService.getById(Number(id));
+              return { id, user: data ?? null } as {
+                id: string;
+                user: UserSummary | null;
+              };
+            })
+          );
+          setOwners((prev) => {
+            const next = { ...prev };
+            results.forEach(({ id, user }) => {
+              next[id] = user;
+            });
+            return next;
           });
-          return next;
-        });
-      } catch {}
+          // Preenche também ownersByBookId para livros que possuem usuarioId
+          setOwnersByBookId((prev) => {
+            const next = { ...prev };
+            books.forEach((b) => {
+              const uid = b.usuarioId != null ? String(b.usuarioId) : null;
+              if (uid && owners[uid] && next[String(b.id)] === undefined) {
+                next[String(b.id)] = owners[uid] ?? null;
+              }
+            });
+            return next;
+          });
+        } catch {}
+      }
+
+      // 2) Para livros sem usuarioId, buscamos via /livros/{id}/usuarios
+      const booksMissingOwner = books.filter(
+        (b) => !b.usuarioId && ownersByBookId[String(b.id)] === undefined
+      );
+      if (booksMissingOwner.length > 0) {
+        try {
+          const results = await Promise.all(
+            booksMissingOwner.map(async (b) => {
+              const users = await UsersService.getByLivroId(String(b.id));
+              const owner =
+                Array.isArray(users) && users.length > 0 ? users[0] : null;
+              return { bookId: String(b.id), owner } as {
+                bookId: string;
+                owner: UserSummary | null;
+              };
+            })
+          );
+          setOwnersByBookId((prev) => {
+            const next = { ...prev };
+            results.forEach(({ bookId, owner }) => {
+              next[bookId] = owner;
+            });
+            return next;
+          });
+        } catch {}
+      }
     })();
-  }, [books]);
+  }, [books, owners, ownersByBookId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -134,8 +177,12 @@ export function BooksUnilivrers() {
                 <Text className="text-xs text-[#FFFFFF] mt-0">
                   Tipo: {formatTipo(livro.tipo as any)}
                   {"\n"}Estado: {formatEstado(livro.estado as any)}
-                  {"\n"}Email:{" "}
-                  {owners[String(livro.usuarioId)]?.email ?? "não informado"}
+                  {"\n"}Usuário:{" "}
+                  <Text className="text-[#F29F05]">
+                    {ownersByBookId[String(livro.id)]?.nome ??
+                      owners[String(livro.usuarioId ?? "")]?.nome ??
+                      "não informado"}
+                  </Text>
                 </Text>
               </View>
 

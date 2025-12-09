@@ -92,18 +92,15 @@ export default function UserProfile() {
 
   const isFetchingBooksRef = useRef(false);
   const loadBooks = useCallback(async () => {
-    if (!userIdStr) {
+    if (!user?.id) {
       setLoadingBooks(false);
       return;
     }
-    // Evita chamadas concorrentes
     if (isFetchingBooksRef.current) return;
     isFetchingBooksRef.current = true;
     try {
       setLoadingBooks(true);
-      const userBooks = isOwnProfile
-        ? await BooksService.getMine()
-        : await BooksService.getByUsuarioId(userIdStr);
+      const userBooks = await BooksService.getByUsuarioId(String(user.id));
       const enrichedBooks = await enrichBooksFromGoogle(userBooks);
       setBooks(enrichedBooks);
     } catch {
@@ -112,16 +109,17 @@ export default function UserProfile() {
       setLoadingBooks(false);
       isFetchingBooksRef.current = false;
     }
-  }, [userIdStr, enrichBooksFromGoogle, isOwnProfile]);
+  }, [user?.id, enrichBooksFromGoogle]);
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
   useEffect(() => {
-    loadBooks();
-    // Recarrega quando o id da rota muda
-  }, [userIdStr]);
+    if (user?.id) {
+      loadBooks();
+    }
+  }, [user?.id, loadBooks]);
 
   const handleBack = useCallback(() => {
     router.back();
@@ -202,7 +200,7 @@ export default function UserProfile() {
   return (
     <Screen className="bg-[#FFF2F2]">
       <ScrollView className="flex-1" contentContainerClassName="p-4">
-        <View className="flex flex-row items-center mb-4">
+        <View className="flex flex-row items-center mb-4 gap-2">
           <Feather
             name="arrow-left"
             size={24}
@@ -210,10 +208,10 @@ export default function UserProfile() {
             onPress={handleBack}
           />
           <Text
-            className="flex-1 text-center text-[#4B1D0E] text-xl"
+            className="flex-1 text-start text-[#4B1D0E] text-xl"
             style={{ fontFamily: "JosefinSans_600SemiBold" }}
           >
-            Perfil
+            Voltar
           </Text>
         </View>
         <View className="items-center mb-4">
@@ -262,7 +260,7 @@ export default function UserProfile() {
               key={livro.id}
               onPress={() => handleNavigateToBook(livro)}
             >
-              <View className="w-16 h-24 rounded-lg overflow-hidden bg-white border border-orange-300">
+              <View className="w-24 h-36 rounded-lg overflow-hidden bg-white border border-orange-300">
                 <Image
                   source={
                     livro.imagem
