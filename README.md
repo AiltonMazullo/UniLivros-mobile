@@ -85,5 +85,5 @@ Executar:
 - Gabriella Stheffany Pontes da Cunha — QA / Testes e Documentação Técnica
 - Jônatas Lopes Ferreira da Silva — Arquiteto de Banco de Dados
 - José Olegário Acioly Nery — Líder de Projeto / Scrum Master
-- Matheus Guilherme Morais da Silva — Desenvolvedor Mobile
-- Poliane Maria do Monte Silva — Desenvolvedor Front‑end Web
+- Matheus Guilherme Morais da Silva — Desenvolvedor Back‑end
+- Poliane Maria do Monte Silva — Desenvolvedor Front‑end 
